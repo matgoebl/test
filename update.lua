@@ -22,9 +22,9 @@ function download_files(filelist,count)
     file.open(filename,"w")
     file.write(d)
     file.close()
+    download_files(filelist,count)
    end
   end)
-  download_files(filelist,count)
  else
   node.restart()
  end
