@@ -1,5 +1,5 @@
 local baseURL="https://raw.githubusercontent.com/matgoebl/nodemcu-wifimusicledclock/master/"
-local baseURL="https://raw.githubusercontent.com/matgoebl/test/master/"
+--local baseURL="https://raw.githubusercontent.com/matgoebl/test/master/"
 local update_files={'cfgedit.lua','clock.lua','compile.lua','handle_http_basic.lua','melody.lua','modes.lua','nettime.lua','rgb.lua','twokeys.lua','update.lua','updater.lua','index.html','api.js','rgb.js','autostart.lua'}
 -- 'config.lua'
 -- 'init.lua'
