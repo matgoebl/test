@@ -12,7 +12,7 @@ function download_files(filelist,count)
  local filename=table.remove(filelist)
  if filename~=nil then
   print("download:",baseURL..filename)
-  http.get(listURL, nil, function(code,data)
+  http.get(baseURL..filename, nil, function(code,data)
    if (code ~= 200) then
      print("http error:",code)
      ws2812.writergb(rgb_pin,string.char(255,255,0):rep(count-remaining-1)..string.char(255,0,0)..string.char(0,0,255):rep(remaining))
