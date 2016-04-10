@@ -10,21 +10,24 @@ function download_files(filelist,count)
  local remaining=#filelist
  ws2812.writergb(rgb_pin,string.char(brg,brg,0):rep(count-remaining)..string.char(0,0,brg):rep(remaining))
  print("count:",count-remaining,remaining)
- local filename=table.remove(filelist)
+ local filename=table.remove(filelist,1)
  if filename~=nil then
+  tmr.alarm(0, 1000, 0, function()
+
   print("download:",baseURL..filename)
   http.get(baseURL..filename, nil, function(code,data)
    if (code ~= 200) then
      print("http error:",code)
-     ws2812.writergb(rgb_pin,string.char(brg,brg,0):rep(count-remaining-1)..string.char(brg,0,0)..string.char(0,0,brg):rep(remaining))
+     ws2812.writergb(rgb_pin,string.char(brg,brg,0):rep(count-remaining)..string.char(brg,0,0)..string.char(0,0,brg):rep(remaining-1))
    else
     print("ok,size:",#data)
     file.remove(filename)
     file.open(filename,"w")
-    file.write(d)
+    file.write(data)
     file.close()
     download_files(filelist,count)
    end
+  end)
   end)
  else
   node.restart()
