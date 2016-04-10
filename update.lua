@@ -4,10 +4,11 @@ local update_files={'cfgedit.lua','clock.lua','compile.lua','handle_http_basic.l
 -- 'config.lua'
 -- 'init.lua'
 local rgb_pin=4 -- GPIO 2
+local brg=31 -- brightness
 
 function download_files(filelist,count)
  local remaining=#filelist
- ws2812.writergb(rgb_pin,string.char(255,255,0):rep(count-remaining)..string.char(0,0,255):rep(remaining))
+ ws2812.writergb(rgb_pin,string.char(brg,brg,0):rep(count-remaining)..string.char(0,0,brg):rep(remaining))
  print("count:",count-remaining,remaining)
  local filename=table.remove(filelist)
  if filename~=nil then
@@ -15,7 +16,7 @@ function download_files(filelist,count)
   http.get(baseURL..filename, nil, function(code,data)
    if (code ~= 200) then
      print("http error:",code)
-     ws2812.writergb(rgb_pin,string.char(255,255,0):rep(count-remaining-1)..string.char(255,0,0)..string.char(0,0,255):rep(remaining))
+     ws2812.writergb(rgb_pin,string.char(brg,brg,0):rep(count-remaining-1)..string.char(brg,0,0)..string.char(0,0,brg):rep(remaining))
    else
     print("ok,size:",#data)
     file.remove(filename)
