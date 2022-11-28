@@ -13,6 +13,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  if: ${{ false }}
   build-and-push-image:
     runs-on: ubuntu-latest
     permissions:
@@ -49,8 +50,12 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+
   clean-ghcr:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+
     steps:
       - name: Delete untagged containers older than a week
         uses: snok/container-retention-policy@v1
@@ -60,4 +65,4 @@ jobs:
           keep-at-least: 1
           untagged-only: true
           account-type: personal
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
