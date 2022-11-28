@@ -59,4 +59,5 @@ jobs:
           cut-off: A week ago UTC
           keep-at-least: 1
           untagged-only: true
+          account-type: personal
           token: ${{ secrets.PAT }}
