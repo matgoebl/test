@@ -3,7 +3,7 @@ name: Create and Publish Docker Image to ghcr.io
 on:
   push:
     branches:
-      - $default-branch
+      - main
       - master
     tags:
       - '*'
