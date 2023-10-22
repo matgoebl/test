@@ -28,6 +28,7 @@ jobs:
           PRERELEASE: true
           DEFAULT_BUMP: patch
           DEFAULT_BRANCH: main
+          INITIAL_VERSION: 0.1.0
 
       # - uses: actions/checkout@v3
 
