@@ -1,0 +1,49 @@
+# see https://github.com/marketplace/actions/github-tag-bump
+name: Bump version
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - master
+
+jobs:
+  build:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: '0'
+
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.64.0 # Don't use @master or @v1 unless you're happy to test the latest version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if you don't want to set write permissions use a PAT token
+          WITH_V: true
+          PRERELEASE: false
+          DEFAULT_BUMP: patch
+          # DEFAULT_BRANCH: master
+          INITIAL_VERSION: 0.1.0
+
+      # - uses: actions/checkout@v3
+
+      # - name: Create release artifacts
+      #   run: |
+      #     tar czvf release.tar.gz README.md
+
+      # - uses: ncipollo/release-action@v1
+      #   with:
+      #     artifacts: "release.tar.gz"
+      #     bodyFile: "README.md"
+
+      # - uses: "marvinpinto/action-automatic-releases@latest"
+      #   with:
+      #     repo_token: "${{ secrets.GITHUB_TOKEN }}"
+      #     prerelease: false
+      #     files: |
+      #       bashrc
+      #       *.tar.gz
