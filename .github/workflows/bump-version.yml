@@ -9,7 +9,7 @@ on:
   push:
 
 env:
-  BUILD: ${{ github.event.pull_request.merged == true && "release" || "snapshot" }}
+  BUILD: ${{ github.event.pull_request.merged == true && 'release' || 'snapshot' }}
 
 jobs:
   build:
@@ -60,7 +60,7 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
-          automatic_release_tag: ${{ github.event.pull_request.merged == true && steps.bump.outputs.new_tag || "development" }}
+          automatic_release_tag: ${{ github.event.pull_request.merged == true && steps.bump.outputs.new_tag || 'development' }}
           # title: 'Development Build'
           files: |
             bashrc
