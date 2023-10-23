@@ -7,15 +7,12 @@ on:
     branches:
       - master
   push:
-    branches:
-      - '*'
 
 env:
   BUILD: ${{ github.event.pull_request.merged == true && 'release' || 'snapshot' }}
 
 jobs:
   build:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -36,7 +33,7 @@ jobs:
           fetch-depth: '0'
 
       - name: Bump version and push tag
-        if: ${{ github.event.pull_request.merged == true }}
+        if: github.event.pull_request.merged == true
         uses: anothrNick/github-tag-action@1.64.0 # Don't use @master or @v1 unless you're happy to test the latest version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if you don't want to set write permissions use a PAT token
