@@ -28,16 +28,6 @@ jobs:
       contents: write
       packages: write
     steps:
-      - name: Debug output
-        run: |
-          echo "- GITHUB_REF: $GITHUB_REF" >> $GITHUB_STEP_SUMMARY
-          echo "- GITHUB_SHA: $GITHUB_SHA" >> $GITHUB_STEP_SUMMARY
-          echo "- Merge Commit SHA: ${{ github.event.pull_request.merge_commit_sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "- MERGE_COMMIT_SHA: $MERGE_COMMIT_SHA" >> $GITHUB_STEP_SUMMARY
-          echo "- BUILD: $BUILD" >> $GITHUB_STEP_SUMMARY
-        env:
-          MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}
-
 
       - name: Checkout Merge Commit
         uses: actions/checkout@v4
@@ -94,7 +84,7 @@ jobs:
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=development,enable={{#if is_default_branch}}false{{else}}true{{/if}}
+            type=raw,value=development,enable={{if is_default_branch}}false{{else}}true{{/if}}
             type=schedule
 
       - name: Build and push Docker image
