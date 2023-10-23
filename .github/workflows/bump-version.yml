@@ -1,5 +1,5 @@
 # see https://github.com/marketplace/actions/github-tag-bump
-name: Bump version
+name: Build and Release
 on:
   pull_request:
     types:
@@ -7,20 +7,38 @@ on:
     branches:
       - master
 
+  push:
+
+  schedule:
+  - cron: "43 5 * * 1"
+
+  workflow_dispatch:
+
+
+env:
+  BUILD: ${{ github.event.pull_request.merged == true && 'release' || 'snapshot' }}
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   build:
-    if: github.event.pull_request.merged == true
+    name: Build and Release
     runs-on: ubuntu-22.04
     permissions:
       contents: write
+      packages: write
     steps:
-      - uses: actions/checkout@v4
+
+      - name: Checkout Merge Commit
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
           fetch-depth: '0'
 
       - name: Bump version and push tag
-        uses: anothrNick/github-tag-action@1.64.0 # Don't use @master or @v1 unless you're happy to test the latest version
+        if: github.event.pull_request.merged == true
+        uses: anothrNick/github-tag-action@1.67.0 # Don't use @master or @v1 unless you're happy to test the latest version
+        id: bump
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if you don't want to set write permissions use a PAT token
           WITH_V: true
@@ -28,26 +46,71 @@ jobs:
           DEFAULT_BUMP: patch
           # DEFAULT_BRANCH: master
           INITIAL_VERSION: 0.1.0
-        id: bump
 
-      # - uses: actions/checkout@v3
-
-      - name: Create release artifacts
+      - name: Set version
         run: |
-          tar czvf release.tar.gz README.md
+          echo "VERSION={value}" >> "$GITHUB_ENV"
+          echo "- GITHUB_REF: $GITHUB_REF" >> $GITHUB_STEP_SUMMARY
+          echo "- GITHUB_SHA: $GITHUB_SHA" >> $GITHUB_STEP_SUMMARY
+          echo "- Merge Commit SHA: ${{ github.event.pull_request.merge_commit_sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- MERGE_COMMIT_SHA: $MERGE_COMMIT_SHA" >> $GITHUB_STEP_SUMMARY
+          echo "- BUILD: $BUILD" >> $GITHUB_STEP_SUMMARY
+          echo "- VERSION: $VERSION" >> $GITHUB_STEP_SUMMARY
+        env:
+          MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          VERSION: ${{ github.event.pull_request.merged == true && steps.bump.outputs.new_tag || '0.0.1' }}
 
-      # - uses: ncipollo/release-action@v1
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=development,enable=${{ github.ref != 'refs/heads/master' }}
+            type=schedule
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: ./
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Create helm chart
+        run: |
+          helm package --version $VERSION --app-version $VERSION helm-chart/
+          mv mpd-dlna-yamaha-avr-*.tgz mpd-dlna-yamaha-avr--helm-chart.tgz
+        env:
+          VERSION: ${{ github.event.pull_request.merged == true && steps.bump.outputs.new_tag || '0.0.1' }}
+
+      # - uses: actions/upload-artifact@v3
       #   with:
-      #     artifacts: "release.tar.gz"
-      #     bodyFile: "README.md"
+      #     name: mpd-dlna-yamaha-avr.tgz
+      #     path: ./mpd-dlna-yamaha-avr-*.tgz
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
-          automatic_release_tag: ${{ steps.bump.outputs.new_tag }}
-          # title: 'Development Build'
+          automatic_release_tag: ${{ github.event.pull_request.merged == true && steps.bump.outputs.new_tag || 'development' }}
           files: |
-            bashrc
-            *.tar.gz
-
+            mpd-dlna-yamaha-avr--helm-chart.tgz
