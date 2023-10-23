@@ -84,7 +84,8 @@ jobs:
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=development,enable=${{is_default_branch && 'false' || 'true'}}
+            type=raw,value=development,enable=${{ github.ref != 'refs/heads/master' }}
+            #${{is_default_branch && 'false' || 'true'}}
             type=schedule
 
       - name: Build and push Docker image
