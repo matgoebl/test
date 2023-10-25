@@ -1,33 +1,33 @@
-name: "tagged-release"
+# name: "tagged-release"
 
-on:
-  push:
-    tags:
-      - "v*"
+# on:
+#   push:
+#     tags:
+#       - "v*"
 
-jobs:
-  tagged-release:
-    name: "Tagged Release"
-    runs-on: "ubuntu-latest"
+# jobs:
+#   tagged-release:
+#     name: "Tagged Release"
+#     runs-on: "ubuntu-latest"
 
-    steps:
+#     steps:
 
 
-      - uses: actions/checkout@v4
+#       - uses: actions/checkout@v4
 
-      - name: Create release artifacts
-        run: |
-          tar czvf release.tar.gz README.md
+#       - name: Create release artifacts
+#         run: |
+#           tar czvf release.tar.gz README.md
 
-      # - uses: ncipollo/release-action@v1
-      #   with:
-      #     artifacts: "release.tar.gz"
-      #     bodyFile: "README.md"
+#       # - uses: ncipollo/release-action@v1
+#       #   with:
+#       #     artifacts: "release.tar.gz"
+#       #     bodyFile: "README.md"
 
-      - uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: false
-          files: |
-            bashrc
-            *.tar.gz
+#       - uses: "marvinpinto/action-automatic-releases@latest"
+#         with:
+#           repo_token: "${{ secrets.GITHUB_TOKEN }}"
+#           prerelease: false
+#           files: |
+#             bashrc
+#             *.tar.gz
