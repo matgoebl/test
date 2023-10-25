@@ -91,8 +91,9 @@ jobs:
             type=semver,pattern={{version}}
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=development,enable=${{ github.ref != 'refs/heads/master' }}
-            type=raw,value=${{ env.VERSIONNUM }},enable=${{ github.ref != 'refs/heads/master' }}
+            type=raw,value=${{ env.VERSIONNUM }}
             type=schedule
+            # type=raw,value=${{ env.VERSIONNUM }},enable=${{ github.ref != 'refs/heads/master' }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
