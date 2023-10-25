@@ -91,6 +91,7 @@ jobs:
             type=semver,pattern={{version}}
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=development,enable=${{ github.ref != 'refs/heads/master' }}
+            type=raw,value=${{ env.VERSIONNUM }},enable=${{ github.ref != 'refs/heads/master' }}
             type=schedule
 
       - name: Build and push Docker image
@@ -103,10 +104,10 @@ jobs:
 
       - name: Create helm chart
         run: |
-          helm package --version $VERSION --app-version $VERSION helm-chart/
+          helm package --version $VERSIONNUM --app-version $VERSIONNUM helm-chart/
           mv mpd-dlna-yamaha-avr-*.tgz mpd-dlna-yamaha-avr--helm-chart.tgz
-        env:
-          VERSION: ${{ github.event.pull_request.merged == true && steps.bump.outputs.new_tag || 'development' }}
+        # env:
+        #   VERSION: ${{ github.event.pull_request.merged == true && steps.bump.outputs.new_tag || '0.0.1' }}
 
       # - uses: actions/upload-artifact@v3
       #   with:
@@ -117,6 +118,7 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
-          automatic_release_tag: ${{ github.event.pull_request.merged == true && steps.bump.outputs.new_tag || 'development' }}
+          # automatic_release_tag: ${{ github.event.pull_request.merged == true && steps.bump.outputs.new_tag || 'development' }}
+          automatic_release_tag: ${{ env.VERSIONNUM }}
           files: |
             mpd-dlna-yamaha-avr--helm-chart.tgz
