@@ -119,6 +119,6 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           # automatic_release_tag: ${{ github.event.pull_request.merged == true && steps.bump.outputs.new_tag || 'development' }}
-          automatic_release_tag: ${{ env.VERSIONNUM }}
+          automatic_release_tag: v${{ env.VERSIONNUM }}
           files: |
             mpd-dlna-yamaha-avr--helm-chart.tgz
