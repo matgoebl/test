@@ -106,7 +106,7 @@ jobs:
           helm package --version $VERSION --app-version $VERSION helm-chart/
           mv mpd-dlna-yamaha-avr-*.tgz mpd-dlna-yamaha-avr--helm-chart.tgz
         env:
-          VERSION: ${{ github.event.pull_request.merged == true && env.VERSIONNUM || '0.0.1' }}
+          VERSION: ${{ github.event.pull_request.merged == true && steps.bump.outputs.new_tag || 'development' }}
 
       # - uses: actions/upload-artifact@v3
       #   with:
