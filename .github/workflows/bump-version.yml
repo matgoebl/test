@@ -1,4 +1,3 @@
-# see https://github.com/marketplace/actions/github-tag-bump
 name: Build and Release
 on:
   pull_request:
@@ -13,20 +12,20 @@ on:
 
 
   schedule:
-  - cron: "43 5 * * 1"
+  - cron: "41 5 * * *"
 
   workflow_dispatch:
 
 
 env:
-  BUILD: ${{ github.event.pull_request.merged == true && 'release' || 'snapshot' }}
+  BUILD: ${{ github.event.pull_request.merged == true && 'release' || 'development' }}
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build:
     name: Build and Release
-    if: github.event.pull_request.merged == true || github.ref != 'refs/heads/master'
+    if: github.event.pull_request.merged == true || ( github.event_name == 'push' && github.event.push.ref != 'refs/heads/master' )
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -44,31 +43,22 @@ jobs:
         uses: anothrNick/github-tag-action@1.67.0 # Don't use @master or @v1 unless you're happy to test the latest version
         id: bump
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if you don't want to set write permissions use a PAT token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: true
           PRERELEASE: false
           DEFAULT_BUMP: patch
-          # DEFAULT_BRANCH: master
-          INITIAL_VERSION: 0.1.0
+          INITIAL_VERSION: 1.0.0
 
-      - name: Set version
+      - name: Set version and output info
         run: |
-          echo "VERSION={value}" >> "$GITHUB_ENV"
-          echo "- GITHUB_REF: $GITHUB_REF" >> $GITHUB_STEP_SUMMARY
-          echo "- GITHUB_SHA: $GITHUB_SHA" >> $GITHUB_STEP_SUMMARY
-          echo "- Merge Commit SHA: ${{ github.event.pull_request.merge_commit_sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "- MERGE_COMMIT_SHA: $MERGE_COMMIT_SHA" >> $GITHUB_STEP_SUMMARY
-          echo "- BUILD: $BUILD" >> $GITHUB_STEP_SUMMARY
           VERSIONNUM=${VERSION#v}
-          echo "- VERSION: $VERSION ($VERSIONNUM)" >> $GITHUB_STEP_SUMMARY
           echo "VERSIONNUM=$VERSIONNUM" >> $GITHUB_ENV
-
+          for var in GITHUB_EVENT_NAME GITHUB_REF_TYPE GITHUB_REF GITHUB_SHA MERGE_COMMIT_SHA BUILD VERSION VERSIONNUM; do
+            echo "- $var: ${!var}" >> $GITHUB_STEP_SUMMARY
+          done
         env:
           MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}
-          VERSION: ${{ github.event.pull_request.merged == true && steps.bump.outputs.new_tag || '0.0.1' }}
-
-      # - name: Checkout repository
-      #   uses: actions/checkout@v3
+          VERSION: ${{ github.event.pull_request.merged == true && steps.bump.outputs.new_tag || 'v0.0.1' }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -94,7 +84,6 @@ jobs:
             type=raw,value=development,enable=${{ github.ref != 'refs/heads/master' }}
             type=raw,value=${{ env.VERSIONNUM }}
             type=schedule
-            # type=raw,value=${{ env.VERSIONNUM }},enable=${{ github.ref != 'refs/heads/master' }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
@@ -108,19 +97,13 @@ jobs:
         run: |
           helm package --version $VERSIONNUM --app-version $VERSIONNUM helm-chart/
           mv mpd-dlna-yamaha-avr-*.tgz mpd-dlna-yamaha-avr--helm-chart.tgz
-        # env:
-        #   VERSION: ${{ github.event.pull_request.merged == true && steps.bump.outputs.new_tag || '0.0.1' }}
 
-      # - uses: actions/upload-artifact@v3
-      #   with:
-      #     name: mpd-dlna-yamaha-avr.tgz
-      #     path: ./mpd-dlna-yamaha-avr-*.tgz
-
-      - uses: "marvinpinto/action-automatic-releases@latest"
+      - name: Create release
+        uses: "marvinpinto/action-automatic-releases@d68defdd11f9dcc7f52f35c1b7c236ee7513bcc1"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: false
-          # automatic_release_tag: ${{ github.event.pull_request.merged == true && steps.bump.outputs.new_tag || 'development' }}
+          prerelease: ${{ github.event.pull_request.merged != true }}
           automatic_release_tag: v${{ env.VERSIONNUM }}
+          title: ${{ env.BUILD }} ${{ env.VERSIONNUM }}
           files: |
             mpd-dlna-yamaha-avr--helm-chart.tgz
