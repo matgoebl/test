@@ -58,7 +58,7 @@ jobs:
           done
         env:
           MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}
-          VERSION: ${{ github.event.pull_request.merged == true && steps.bump.outputs.new_tag || '0.0.1' }}
+          VERSION: ${{ github.event.pull_request.merged == true && steps.bump.outputs.new_tag || 'v0.0.1' }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -99,10 +99,10 @@ jobs:
           mv mpd-dlna-yamaha-avr-*.tgz mpd-dlna-yamaha-avr--helm-chart.tgz
 
       - name: Create release
-        uses: "marvinpinto/action-automatic-releases@latest"
+        uses: "marvinpinto/action-automatic-releases@d68defd"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: false
+          prerelease: ${{ github.event.pull_request.merged != true }}
           automatic_release_tag: v${{ env.VERSIONNUM }}
           title: ${{ env.BUILD }} ${{ env.VERSIONNUM }}
           files: |
