@@ -6,3 +6,4 @@
 #COPY bashrc /root/.bashrc
 COPY entry.sh /
 CMD ["/entry.sh"]
+
