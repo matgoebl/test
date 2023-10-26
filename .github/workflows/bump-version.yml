@@ -11,12 +11,6 @@ on:
       - master
 
 
-  schedule:
-  - cron: "41 5 * * *"
-
-  workflow_dispatch:
-
-
 env:
   BUILD: ${{ github.event.pull_request.merged == true && 'release' || 'development' }}
   REGISTRY: ghcr.io
