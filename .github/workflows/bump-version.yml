@@ -18,7 +18,7 @@ on:
 
 
 env:
-  BUILD: ${{ github.event.pull_request.merged == true && 'release' || 'snapshot' }}
+  BUILD: ${{ github.event.pull_request.merged == true && 'release' || 'development' }}
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
